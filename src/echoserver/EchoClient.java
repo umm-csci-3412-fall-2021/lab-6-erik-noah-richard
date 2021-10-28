@@ -12,21 +12,25 @@ public class EchoClient {
 		EchoClient client = new EchoClient();
 		client.start();
 	}
-
+	// start the client
 	private void start() throws IOException {
 		Socket socket = new Socket("localhost", PORT_NUMBER);
+		// get the input and output streams
 		InputStream socketInputStream = socket.getInputStream();
 		OutputStream socketOutputStream = socket.getOutputStream();
 
+		// read the input stream
 		UserInputProcessor userInput = new UserInputProcessor(socket, socketOutputStream);
 		ServerOutputProcessor serverOutput = new ServerOutputProcessor(socket, socketInputStream);
 
+		// start the threads
 		Thread userInputThread = new Thread(userInput);
 		Thread serverOutputThread = new Thread(serverOutput);
 		
 		userInputThread.start();
 		serverOutputThread.start();
 
+		// wait for the threads to finish
 		try {
 			userInputThread.join();
 			serverOutputThread.join();
@@ -35,6 +39,7 @@ public class EchoClient {
 			System.exit(1);
 		}
 
+		// close the socket
 		socket.close();
 		
 	}
@@ -49,6 +54,7 @@ public class EchoClient {
 			this.toServerStream = socketOutputStream;
 		}
 
+		// read the user input and send it to the server
 		public void run	() {
 			try{
 				
@@ -58,6 +64,7 @@ public class EchoClient {
 					keyboardInput = System.in.read();
 				}
 
+				// close the socket
 				toServerStream.flush();
 				socket.shutdownOutput();
 
@@ -71,7 +78,6 @@ public class EchoClient {
 	
 	
 	public class ServerOutputProcessor implements Runnable {
-		
 		Socket socket;
 		InputStream fromServerStream;
 		
@@ -80,15 +86,16 @@ public class EchoClient {
 			this.fromServerStream = socketInputStream;
 		}
 
+		// read the server output and print it to the console
 		public void run	() {
-			try{
-				
+			try	{
 				int serverOutput = fromServerStream.read();
 				while (serverOutput != -1){
 					System.out.write(serverOutput);
 					serverOutput = fromServerStream.read();
 				}
 
+				// close the socket
 				System.out.flush();
 				socket.shutdownInput();
 
